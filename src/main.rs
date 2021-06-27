@@ -51,7 +51,7 @@ async fn main() -> tide::Result<()> {
     if let Some(val) = conf.static_dirs {
         let path = Path::new(&val);
         if path.exists() && path.is_dir() {
-            app.at("/").serve_dir(path.to_str().unwrap())?;    
+            app.at("").serve_dir(path.to_str().unwrap())?;    
         } else { warn!("Static Directory dosen't exists!") }
         
         let path = path.join("index.html");
