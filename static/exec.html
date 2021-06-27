@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="#" />
+    <title>Rasp Manager</title>
+    <link rel="stylesheet" href="awsm.min.css">
+</head>
+<body>
+    <header>
+        <h1>Rasp Manager</h1>
+        <p>Simple manager to manage Raspberry Pi 4</p>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/commands.html">Commands</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div id="output">
+            <img src="loading.gif" alt="">
+        </div>
+    </main>
+    <footer>
+        Made with ❤️ by <a href="https://github.com/PiyushXCoder">Piyush Mishra</a>
+    </footer>
+
+    <script src="jquery-3.6.0.min.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        var command = params.get('cmd');
+        if(command != '' || command != undefined) {
+            $.get("/"+command, function(data) {
+                $('#output').empty().append($('<pre>').append(data));
+            }).fail(function() {
+            $('#output').empty().append($('<span>', {style: 'color: red'})
+                .append('Error in executing command!'));
+            });
+        }
+    </script>
+</body>
+</html>

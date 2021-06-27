@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="#" />
+    <title>Rasp Manager</title>
+    <link rel="stylesheet" href="awsm.min.css">
+</head>
+<body>
+    <header>
+        <h1>Rasp Manager</h1>
+        <p>Simple manager to manage Raspberry Pi 4</p>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/commands.html">Commands</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div id="sysinfo">
+            <img src="loading.gif" alt="">
+        </div>
+    </main>
+    <footer>
+        Made with ❤️ by <a href="https://github.com/PiyushXCoder">Piyush Mishra</a>
+    </footer>
+
+    <script src="jquery-3.6.0.min.js"></script>
+    <script>
+        $.get("/sysinfo", function(data) {
+            var data = JSON.parse(data);
+            var area = $('#sysinfo');
+            var pushin = function(parent, label, dat) {
+                parent.append($('<b>').append(label))
+                    .append(dat)
+                    .append('<br>');
+            }
+            area.empty();
+
+            var fset = $('<fieldset>');
+            fset.append($('<legend>').append('System'));
+            pushin(fset, 'System Name: ', data.system_name);
+            if(data.os_version != undefined) 
+                pushin(fset, 'Operating System Version: ', data.os_version);
+            pushin(fset, 'Kernel Version: ', data.kernel_ver);
+            if(data.last_uadate != undefined) 
+                pushin(fset, 'Last Update: ', data.last_uadate);
+            pushin(fset, 'Hostname: ', data.hostname);
+            pushin(fset, 'Boot Time: ', data.boot_time);
+            area.append(fset);
+
+            var fset = $('<fieldset>');
+            fset.append($('<legend>').append('Cpu'));
+            pushin(fset, 'Core Count: ', data.cpu_cores_count);
+            pushin(fset, 'Load Average(One minute): ', data.cpu_load_avg);
+            area.append(fset);
+
+            var fset = $('<fieldset>');
+            fset.append($('<legend>').append('Memory'));
+            pushin(fset, 'RAM Total: ', data.mem_total.toFixed(2) + ' MB');
+            pushin(fset, 'RAM Used: ', data.mem_used.toFixed(2) + ' MB');
+            pushin(fset, 'SWAP Total: ', data.swap_total.toFixed(2) + ' MB');
+            pushin(fset, 'SWAP Used: ', data.swap_used.toFixed(2) + ' MB');
+            area.append(fset);
+
+            var fset = $('<fieldset>');
+            fset.append($('<legend>').append('Disk'));
+            data.disk.forEach(e => {
+                pushin(fset, '→ '+e.mount, '');
+                var available = e.available;
+                var total = e.total;
+                var unit_available = 'MB';
+                var unit_total = 'MB';
+
+                if(available > 1024) {
+                    available /= 1024;
+                    unit_available = 'GB';
+                }
+                if(total > 1024) {
+                    total /= 1024;
+                    unit_total = 'GB';
+                }
+                
+                pushin(fset, '', +available.toFixed(2)+ ' '+unit_available+'/' +total.toFixed(2)+ ' '+unit_total);
+            });
+            area.append(fset);
+
+            var fset = $('<fieldset>');
+            fset.append($('<legend>').append('Temperature'));
+            data.temperature.forEach(e => {
+                pushin(fset, '→ '+e.label+': ', e.temp +'°C');
+            });
+            area.append(fset);
+            
+        }).fail(function() {
+            $('#sysinfo').empty().append($('<span>', {style: 'color: red'})
+                .append('Error in getting system information!'));
+        });
+    </script>
+</body>
+</html>
