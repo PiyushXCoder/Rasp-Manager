@@ -68,6 +68,7 @@
 
             var fset = $('<fieldset>');
             fset.append($('<legend>').append('Disk'));
+            fset.append($('<small>', {style:'color: grey'}).append('available/total<br>'));
             data.disk.forEach(e => {
                 pushin(fset, '→ '+e.mount, '');
                 var available = e.available;
