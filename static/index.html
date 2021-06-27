@@ -91,7 +91,7 @@
             var fset = $('<fieldset>');
             fset.append($('<legend>').append('Temperature'));
             data.temperature.forEach(e => {
-                pushin(fset, '→ '+e.label+': ', e.temp +'°C');
+                pushin(fset, '→ '+e.label+': ', e.temp.toFixed(2) +'°C');
             });
             area.append(fset);
             
