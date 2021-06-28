@@ -3,6 +3,7 @@ A simple server manager for local newtrok. Its quite helpful when you are hostin
 
 Feel free to add more commands in `src/command.rs`. Contributions and improvements are always welcomed.
 
+![Alt text](screenshot.png "Screenshot")
 
 # LICENSE
 This program is free software: you can redistribute it and/or modify
