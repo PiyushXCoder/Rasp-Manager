@@ -3,6 +3,8 @@ A simple server manager for local newtrok. Its quite helpful when you are hostin
 
 Feel free to add more commands in `src/command.rs`. Contributions and improvements are always welcomed.
 
+Edit systemd service `rasp_mgr.service` as per your need and place it in `/usr/lib/systemd/system/`
+
 ![Alt text](screenshot.png "Screenshot")
 
 # LICENSE

@@ -1,0 +1,11 @@
+[Unit]
+Description=A simple server manager for local newtrok
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/rasp_mgr/bin/rasp_mgr --addr 0.0.0.0 --port 80 --static_dir /opt/rasp_mgr/static
+LimitNOFILE=infinity
+
+[Install]
+WantedBy=multi-user.target

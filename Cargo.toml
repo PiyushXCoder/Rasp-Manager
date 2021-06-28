@@ -5,6 +5,7 @@ description = "A simple server manager for local newtrok"
 authors = ["PiyushXCoder <piyush.raj.kit@gmail.com>"]
 license = "GPL 3.0"
 readme = "README.md"
+repository = "https://github.com/PiyushXCoder/Rasp-Manager"
 keywords = ["server", "raspberry pi"]
 edition = "2018"
 
