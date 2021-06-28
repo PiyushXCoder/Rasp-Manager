@@ -1,5 +1,18 @@
-use clap::{App, Arg};
+/*
+    This file is part of Rasp Manager.
+    Rasp Manager is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    Rasp Manager is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with Rasp Manager.  If not, see <https://www.gnu.org/licenses/>
+*/
 
+use clap::{App, Arg};
 
 pub struct Config {
     pub static_dirs: Option<String>,
@@ -10,7 +23,7 @@ pub struct Config {
 impl Config {
     pub fn generate() -> Config {
         let matches = App::new("Rasp Manager")
-            .about("Manager for raspberry pi")
+            .about("A simple server manager for local newtrok")
             .version(env!("CARGO_PKG_VERSION"))
             .author(env!("CARGO_PKG_AUTHORS"))
             .arg(Arg::with_name("addr")
