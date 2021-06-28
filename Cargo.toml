@@ -3,10 +3,10 @@ name = "rasp_mgr"
 version = "1.0.0"
 description = "A simple server manager for local newtrok"
 authors = ["PiyushXCoder <piyush.raj.kit@gmail.com>"]
-license = "GPL 3.0"
+license = "GPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/PiyushXCoder/Rasp-Manager"
-keywords = ["server", "raspberry_pi", "raspberry"]
+keywords = ["server", "raspberry-pi", "raspberry"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
