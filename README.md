@@ -1,7 +1,7 @@
 # Rasp Manager
-A simple server manager for local newtrok. Its quite helpful when you are hosting something on raspberrypi.
+A simple server manager for local network. Its quite helpful when you are hosting something on Raspberry Pi.
 
-Feel free to add more commands in `src/command.rs`. Contributions and improvements are always welcomed.
+Change `static_dir` to where static files exist add more commands in `Config.toml`. Contributions and improvements are always welcomed.
 
 Edit systemd service `rasp_mgr.service` as per your need and place it in `/usr/lib/systemd/system/` and enable it.
 
