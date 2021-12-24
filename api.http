@@ -1,0 +1,33 @@
+GET http://0.0.0.0:8080/sysinfo
+
+HTTP/1.1 200 - OK
+content-length: 788
+content-type: application/json
+date: Fri, 24 Dec 2021 16:01:32 GMT
+
+###
+
+GET http://0.0.0.0:8080/cmdquery
+
+HTTP/1.1 200 - OK
+content-length: 179
+content-type: application/json
+date: Fri, 24 Dec 2021 15:58:24 GMT
+
+###
+
+GET http://0.0.0.0:8080/exec/lsblk
+
+HTTP/1.1 200 - OK
+content-length: 533
+content-type: text/plain;charset=utf-8
+date: Fri, 24 Dec 2021 15:48:27 GMT
+
+###
+
+GET http://0.0.0.0:8080/exec/random
+
+HTTP/1.1 400 - Bad Request
+content-length: 16
+content-type: text/plain;charset=utf-8
+date: Fri, 24 Dec 2021 15:57:38 GMT

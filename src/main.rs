@@ -14,8 +14,11 @@
 use std::{path::Path, process::Command};
 
 use config::Config;
-use tide::{prelude::*, Request, Response, http::StatusCode, log::warn};
-use libmedium::{parse_hwmons,sensors::{Input, Sensor}};
+use libmedium::{
+    parse_hwmons,
+    sensors::{Input, Sensor},
+};
+use tide::{http::StatusCode, log::warn, prelude::*, utils::After, Request, Response};
 
 mod config;
 mod disks;
@@ -36,46 +39,56 @@ struct SystemInfo {
     swap_total: f64,
     swap_used: f64,
     disk: Vec<Disk>,
-    temperature: Vec<Temprature>
+    temperature: Vec<Temprature>,
 }
 
 #[derive(Serialize)]
 struct Disk {
     mount: String,
     total: f64,
-    available: f64
+    available: f64,
 }
 
 #[derive(Serialize)]
 struct Temprature {
     label: String,
-    temp: f64
+    temp: f64,
 }
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
     let conf = config::Config::generate();
-    
+
     tide::log::start();
     let mut app = tide::with_state(conf.clone());
+
+    app.with(After(|mut res: Response| async move {
+        if let Some(err) = res.downcast_error::<&str>() {
+            let err = err.to_owned();
+            res.set_body(err);
+        }
+        Ok(res)
+    }));
 
     if let Some(val) = conf.static_dir {
         let path = Path::new(&val);
         if path.exists() && path.is_dir() {
-            app.at("").serve_dir(path.to_str().unwrap())?;    
-        } else { warn!("Static Directory dosen't exists!") }
-        
+            app.at("").serve_dir(path.to_str().unwrap())?;
+        } else {
+            warn!("Static Directory dosen't exists!")
+        }
+
         let path = path.join("index.html");
         if path.exists() {
             app.at("/").serve_file(path.to_str().unwrap())?;
         }
     }
 
+    app.at("/sysinfo").get(system_info);
+    app.at("/cmdquery").get(cmd_query);
     app.at("/exec/:command").get(exec_cmd);
     app.at("/poweroff").get(poweroff);
     app.at("/reboot").get(reboot);
-    app.at("/sysinfo").get(system_info);
-    app.at("/cmdquery").get(cmd_query);
     app.listen(format!("{}:{}", conf.addr, conf.port)).await?;
     Ok(())
 }
@@ -83,7 +96,9 @@ async fn main() -> tide::Result<()> {
 async fn poweroff(_: Request<Config>) -> tide::Result {
     async_std::task::spawn(async {
         async_std::task::sleep(std::time::Duration::from_secs(3)).await;
-        Command::new("poweroff").spawn().expect("Failed to poweroff!");
+        Command::new("poweroff")
+            .spawn()
+            .expect("Failed to poweroff!");
     });
     Ok("Reqesting to poweroff. Please see green led for for activity".into())
 }
@@ -98,7 +113,7 @@ async fn reboot(_: Request<Config>) -> tide::Result {
 
 async fn system_info(_: Request<Config>) -> tide::Result {
     let os = sys_info::linux_os_release().unwrap();
-    
+
     let mut cpu_load_avg = 0.0;
     if let Ok(ld) = sys_info::loadavg() {
         cpu_load_avg = ld.one;
@@ -120,7 +135,7 @@ async fn system_info(_: Request<Config>) -> tide::Result {
         disk.push(Disk {
             mount: d.mount,
             total: d.total as f64 / 1048576.0, // bytes to mb
-            available: d.available as f64 / 1048576.0 // bytes to mb
+            available: d.available as f64 / 1048576.0, // bytes to mb
         });
     }
 
@@ -131,15 +146,14 @@ async fn system_info(_: Request<Config>) -> tide::Result {
             let tmp = temp_sensor.read_input().unwrap();
             temperature.push(Temprature {
                 label: temp_sensor.name(),
-                temp: tmp.as_degrees_celsius()
+                temp: tmp.as_degrees_celsius(),
             });
-            
         }
     }
 
-    let boottime = std::time::Duration::from_secs(match  sys_info::boottime() {
+    let boottime = std::time::Duration::from_secs(match sys_info::boottime() {
         Ok(s) => s.tv_sec as u64,
-        Err(_) => 0
+        Err(_) => 0,
     });
 
     let sys_info = SystemInfo {
@@ -157,10 +171,15 @@ async fn system_info(_: Request<Config>) -> tide::Result {
         swap_total,
         swap_used,
         disk,
-        temperature
+        temperature,
     };
 
-    Ok(json!(sys_info).to_string().into())
+    let body = tide::Body::from_json(&sys_info).map_err(|e| {
+        tide::log::error!("Error: {}", e);
+        tide::Error::from_str(StatusCode::ServiceUnavailable, "Internal server error!")
+    })?;
+    let res = Response::builder(StatusCode::Ok).body(body).build();
+    Ok(res)
 }
 
 fn last_update() -> Option<String> {
@@ -169,14 +188,15 @@ fn last_update() -> Option<String> {
 
     let stdout = match cmd.output() {
         Ok(out) => out.stdout,
-        Err(_) => return None
+        Err(_) => return None,
     };
 
     match String::from_utf8(stdout) {
         Ok(val) => {
             let s = val.split(" ").next()?;
-            return Some(s[1..s.len()-1].to_owned());
-        }, Err(_) => return None
+            return Some(s[1..s.len() - 1].to_owned());
+        }
+        Err(_) => return None,
     }
 }
 
@@ -186,22 +206,24 @@ fn exec(cmd: &mut Command) -> String {
     if out.is_err() {
         return "Failed to execute command!".to_owned();
     }
-    
+
     match String::from_utf8(out.unwrap().stdout) {
         Ok(out) => return out,
-        Err(_) => return "Request timeout".to_owned()
+        Err(_) => return "Request timeout".to_owned(),
     }
 }
 
 async fn exec_cmd(req: Request<Config>) -> tide::Result {
-    let cmd = req.state().commands.get(
-        req.param("command").map_err(|e| {
+    let cmd = req
+        .state()
+        .commands
+        .get(req.param("command").map_err(|e| {
             tide::log::error!("Error: {}", e);
             tide::Error::from_str(StatusCode::BadRequest, "Invalid Request!")
-        })?
-    ).ok_or_else(|| {
-        tide::Error::from_str(StatusCode::BadRequest, "No such command!")
-    })?.command.as_str();
+        })?)
+        .ok_or_else(|| tide::Error::from_str(StatusCode::BadRequest, "No such command!"))?
+        .command
+        .as_str();
     let args: Vec<_> = cmd.split_ascii_whitespace().collect();
     Ok(exec(Command::new(&args[0]).args(&args[1..])).into())
 }
@@ -209,7 +231,7 @@ async fn exec_cmd(req: Request<Config>) -> tide::Result {
 async fn cmd_query(req: Request<Config>) -> tide::Result {
     let body = tide::Body::from_json(&req.state().commands).map_err(|e| {
         tide::log::error!("Error: {}", e);
-        tide::Error::from_str(StatusCode::ServiceUnavailable, "Internal server error!") 
+        tide::Error::from_str(StatusCode::ServiceUnavailable, "Internal server error!")
     })?;
     let res = Response::builder(StatusCode::Ok).body(body).build();
     Ok(res)
