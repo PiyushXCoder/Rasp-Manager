@@ -13,13 +13,11 @@
 
 use std::{path::Path, process::Command};
 
-use tide::prelude::*;
-use tide::{Request, log::warn};
-
+use config::Config;
+use tide::{prelude::*, Request, Response, http::StatusCode, log::warn};
 use libmedium::{parse_hwmons,sensors::{Input, Sensor}};
 
 mod config;
-mod command;
 mod disks;
 
 #[derive(Serialize)]
@@ -59,9 +57,9 @@ async fn main() -> tide::Result<()> {
     let conf = config::Config::generate();
     
     tide::log::start();
-    let mut app = tide::new();
+    let mut app = tide::with_state(conf.clone());
 
-    if let Some(val) = conf.static_dirs {
+    if let Some(val) = conf.static_dir {
         let path = Path::new(&val);
         if path.exists() && path.is_dir() {
             app.at("").serve_dir(path.to_str().unwrap())?;    
@@ -73,21 +71,16 @@ async fn main() -> tide::Result<()> {
         }
     }
 
+    app.at("/exec/:command").get(exec_cmd);
     app.at("/poweroff").get(poweroff);
     app.at("/reboot").get(reboot);
-
     app.at("/sysinfo").get(system_info);
-
-    app.at("/ip_addr").get(command::ip_addr);
-    app.at("/ps").get(command::ps);
-    app.at("/lsblk").get(command::lsblk);
-    app.at("/arp").get(command::arp);
-
+    app.at("/cmdquery").get(cmd_query);
     app.listen(format!("{}:{}", conf.addr, conf.port)).await?;
     Ok(())
 }
 
-async fn poweroff(_: Request<()>) -> tide::Result {
+async fn poweroff(_: Request<Config>) -> tide::Result {
     async_std::task::spawn(async {
         async_std::task::sleep(std::time::Duration::from_secs(3)).await;
         Command::new("poweroff").spawn().expect("Failed to poweroff!");
@@ -95,7 +88,7 @@ async fn poweroff(_: Request<()>) -> tide::Result {
     Ok("Reqesting to poweroff. Please see green led for for activity".into())
 }
 
-async fn reboot(_: Request<()>) -> tide::Result {
+async fn reboot(_: Request<Config>) -> tide::Result {
     async_std::task::spawn(async {
         async_std::task::sleep(std::time::Duration::from_secs(3)).await;
         Command::new("reboot").spawn().expect("Failed to reboot!");
@@ -103,7 +96,7 @@ async fn reboot(_: Request<()>) -> tide::Result {
     Ok("Reqesting to Rebooting.".into())
 }
 
-async fn system_info(_: Request<()>) -> tide::Result {
+async fn system_info(_: Request<Config>) -> tide::Result {
     let os = sys_info::linux_os_release().unwrap();
     
     let mut cpu_load_avg = 0.0;
@@ -185,4 +178,39 @@ fn last_update() -> Option<String> {
             return Some(s[1..s.len()-1].to_owned());
         }, Err(_) => return None
     }
+}
+
+fn exec(cmd: &mut Command) -> String {
+    let out = cmd.output();
+
+    if out.is_err() {
+        return "Failed to execute command!".to_owned();
+    }
+    
+    match String::from_utf8(out.unwrap().stdout) {
+        Ok(out) => return out,
+        Err(_) => return "Request timeout".to_owned()
+    }
+}
+
+async fn exec_cmd(req: Request<Config>) -> tide::Result {
+    let cmd = req.state().commands.get(
+        req.param("command").map_err(|e| {
+            tide::log::error!("Error: {}", e);
+            tide::Error::from_str(StatusCode::BadRequest, "Invalid Request!")
+        })?
+    ).ok_or_else(|| {
+        tide::Error::from_str(StatusCode::BadRequest, "No such command!")
+    })?.command.as_str();
+    let args: Vec<_> = cmd.split_ascii_whitespace().collect();
+    Ok(exec(Command::new(&args[0]).args(&args[1..])).into())
+}
+
+async fn cmd_query(req: Request<Config>) -> tide::Result {
+    let body = tide::Body::from_json(&req.state().commands).map_err(|e| {
+        tide::log::error!("Error: {}", e);
+        tide::Error::from_str(StatusCode::ServiceUnavailable, "Internal server error!") 
+    })?;
+    let res = Response::builder(StatusCode::Ok).body(body).build();
+    Ok(res)
 }

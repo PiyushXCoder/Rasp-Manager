@@ -1,0 +1,10 @@
+
+addr = "0.0.0.0"
+port = 8080
+static_dir = "./static"
+
+[commands]
+ipaddr = { label = "ip-addr", command = "ip addr" }
+psaux = { label = "ps-aux", command = "ps -aux" }
+lsblk = { label = "lsblk", command = "lsblk" }
+arp = { label = "arp", command = "arp" }

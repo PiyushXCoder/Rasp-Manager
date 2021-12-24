@@ -33,7 +33,7 @@
         const params = new URLSearchParams(window.location.search);
         var command = params.get('cmd');
         if(command != '' || command != undefined) {
-            $.get("/"+command, function(data) {
+            $.get("/exec/"+command, function(data) {
                 $('#output').empty().append($('<pre>').append(data));
             }).fail(function() {
             $('#output').empty().append($('<span>', {style: 'color: red'})
