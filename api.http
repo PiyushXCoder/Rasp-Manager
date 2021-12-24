@@ -28,6 +28,6 @@ date: Fri, 24 Dec 2021 15:48:27 GMT
 GET http://0.0.0.0:8080/exec/random
 
 HTTP/1.1 400 - Bad Request
-content-length: 16
-content-type: text/plain;charset=utf-8
-date: Fri, 24 Dec 2021 15:57:38 GMT
+content-length: 30
+content-type: application/json
+date: Fri, 24 Dec 2021 16:05:03 GMT

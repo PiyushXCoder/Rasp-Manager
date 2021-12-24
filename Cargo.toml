@@ -1,6 +1,6 @@
 [package]
 name = "rasp_mgr"
-version = "2.0.2"
+version = "2.0.3"
 description = "A simple server manager for local newtrok"
 authors = ["PiyushXCoder <piyush.raj.kit@gmail.com>"]
 license = "GPL-3.0-only"

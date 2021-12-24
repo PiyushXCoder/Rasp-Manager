@@ -65,7 +65,7 @@ async fn main() -> tide::Result<()> {
     app.with(After(|mut res: Response| async move {
         if let Some(err) = res.downcast_error::<&str>() {
             let err = err.to_owned();
-            res.set_body(err);
+            res.set_body(json!({ "message": err }));
         }
         Ok(res)
     }));
