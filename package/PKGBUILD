@@ -9,7 +9,7 @@ arch=('any')
 url="https://github.com/PiyushXCoder/${_pkgname}"
 license=('GPL3')
 makedepends=('git' 'cargo')
-source=("git+https://github.com/darajnish/Rasp-Manager.git")
+source=("git+${url}.git")
 md5sums=('SKIP')
 
 pkgver() {
