@@ -1,6 +1,6 @@
 [package]
 name = "rasp_mgr"
-version = "2.0.3"
+version = "2.0.4"
 description = "A simple server manager for local newtrok"
 authors = ["PiyushXCoder <piyush.raj.kit@gmail.com>"]
 license = "GPL-3.0-only"
@@ -12,17 +12,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.33.3"
-toml = "0.5.8"
+clap = "2.33"
+toml = "0.5"
 
-tide = "0.16.0"
-async-std = { version = "1.6.0", features = ["attributes"] }
+tide = "0.16"
+async-std = { version = "1.6", features = ["attributes"] }
 serde = { version = "1.0", features = ["derive"] }
 
-humantime = "2.1.0"
+humantime = "2.1"
 
-sys-info = "0.9.0"
-libc = "0.2.97"
-mnt = "0.3.1"
+sys-info = "0.9"
+libc = "0.2"
+mnt = "0.3"
 
-libmedium = "0.6.0"
+libmedium = "0.6"

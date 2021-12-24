@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,6 +9,7 @@
     <title>Rasp Manager</title>
     <link rel="stylesheet" href="awsm.min.css">
 </head>
+
 <body>
     <header>
         <h1>Rasp Manager</h1>
@@ -30,10 +32,9 @@
 
     <script src="jquery-3.6.0.min.js"></script>
     <script>
-        $.get("/sysinfo", function(data) {
-            var data = JSON.parse(data);
+        $.get("/sysinfo", function (data) {
             var area = $('#sysinfo');
-            var pushin = function(parent, label, dat) {
+            var pushin = function (parent, label, dat) {
                 parent.append($('<b>').append(label))
                     .append(dat)
                     .append('<br>');
@@ -43,10 +44,10 @@
             var fset = $('<fieldset>');
             fset.append($('<legend>').append('System'));
             pushin(fset, 'System Name: ', data.system_name);
-            if(data.os_version != undefined) 
+            if (data.os_version != undefined)
                 pushin(fset, 'Operating System Version: ', data.os_version);
             pushin(fset, 'Kernel Version: ', data.kernel_ver);
-            if(data.last_uadate != undefined) 
+            if (data.last_uadate != undefined)
                 pushin(fset, 'Last Update: ', data.last_uadate);
             pushin(fset, 'Hostname: ', data.hostname);
             pushin(fset, 'Boot Time: ', data.boot_time);
@@ -68,38 +69,39 @@
 
             var fset = $('<fieldset>');
             fset.append($('<legend>').append('Disk'));
-            fset.append($('<small>', {style:'color: grey'}).append('available/total<br>'));
+            fset.append($('<small>', { style: 'color: grey' }).append('available/total<br>'));
             data.disk.forEach(e => {
-                pushin(fset, '→ '+e.mount, '');
+                pushin(fset, '→ ' + e.mount, '');
                 var available = e.available;
                 var total = e.total;
                 var unit_available = 'MB';
                 var unit_total = 'MB';
 
-                if(available > 1024) {
+                if (available > 1024) {
                     available /= 1024;
                     unit_available = 'GB';
                 }
-                if(total > 1024) {
+                if (total > 1024) {
                     total /= 1024;
                     unit_total = 'GB';
                 }
-                
-                pushin(fset, '', +available.toFixed(2)+ ' '+unit_available+'/' +total.toFixed(2)+ ' '+unit_total);
+
+                pushin(fset, '', +available.toFixed(2) + ' ' + unit_available + '/' + total.toFixed(2) + ' ' + unit_total);
             });
             area.append(fset);
 
             var fset = $('<fieldset>');
             fset.append($('<legend>').append('Temperature'));
             data.temperature.forEach(e => {
-                pushin(fset, '→ '+e.label+': ', e.temp.toFixed(2) +'°C');
+                pushin(fset, '→ ' + e.label + ': ', e.temp.toFixed(2) + '°C');
             });
             area.append(fset);
-            
-        }).fail(function() {
-            $('#sysinfo').empty().append($('<span>', {style: 'color: red'})
+
+        }).fail(function () {
+            $('#sysinfo').empty().append($('<span>', { style: 'color: red' })
                 .append('Error in getting system information!'));
         });
     </script>
 </body>
+
 </html>
